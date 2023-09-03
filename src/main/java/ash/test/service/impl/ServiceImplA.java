@@ -73,8 +73,8 @@ public class ServiceImplA implements IServiceA {
     }
 
     public static String processColumnA02(String columnA) {
-        if (Objects.isNull(columnA) || columnA.length() == 0) {
-            return "processColumnA02, columnA is null or ''";
+        if (columnA.length() > 5) {
+            return columnA + ", columnA.length() > 5";
         }
         return columnA + " , processColumnA02";
     }
@@ -83,6 +83,6 @@ public class ServiceImplA implements IServiceA {
         if (Objects.isNull(columnA) || columnA.length() == 0) {
             return "processColumnA03, columnA is null or ''";
         }
-        return columnA + " , processColumnA03";
+        return columnA;
     }
 }

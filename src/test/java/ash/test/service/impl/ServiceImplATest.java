@@ -3,6 +3,7 @@ package ash.test.service.impl;
 import ash.test.AshSpringMVCTest;
 import ash.test.dao.DaoTableA;
 import ash.test.rpc.RpcClientA;
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -35,10 +36,27 @@ public class ServiceImplATest extends AshSpringMVCTest {
     @Spy
     private RpcClientA rpcClientA;
 
+    /**
+     * {@code @Before} 每个测试方法执行前执行一次
+     */
     @Before
     public void init() {
         // 固定套路, 当前测试类使用到 {@code @InjectMocks} 时需要 initMocks
         MockitoAnnotations.initMocks(this);
+    }
+
+    /**
+     * {@code @After} 每个测试方法执行结束后执行一次 <br/>
+     * 通常在这里调用{@code Mockito.reset(Mock得到的对象)} 来重制原本对"Mock得到的对象"的所有设置(如 doReturn等) <br/>
+     * 通常建议把所有 Mock 相关的对象都重置一遍, 避免一个Test方法修改了Mock对象的某些成员变量值 导致后续的 Test方法无法正常执行(或受到影响) <br/>
+     */
+    @After
+    public void reset() {
+        // 每个Test方法直接结束后, 重置Mock对象
+        // @InjectMocks 不算 Mock对象, 会报错
+        // Mockito.reset(serviceA);
+        Mockito.reset(daoTableA);
+        Mockito.reset(rpcClientA);
     }
 
 
@@ -49,6 +67,8 @@ public class ServiceImplATest extends AshSpringMVCTest {
      * 而 rpcClientA 标注 @Spy, 默认所有方法按照原本形式执行, 所以 getColumnAData(id) 抛出异常 <br/>
      * (2) @Spy 注释的 rpcClientA, Mock其方法, 让其不实际执行内部方法逻辑, 而是直接返回一个 null值 <br/>
      * (3) @Spy 注释的 rpcClientA, Mock其方法, 让其不实际执行内部方法逻辑, 而是直接返回 "columnA" <br/>
+     * (4) @Mock 注释的 daoTableA, Mock其方法, 使其返回 "123456" <br/>
+     * (5) @Mock 注释的 daoTableA, Mock其方法, 使其返回 "123" <br/>
      * </p>
      */
     @Test
@@ -69,6 +89,65 @@ public class ServiceImplATest extends AshSpringMVCTest {
         Mockito.doReturn("columnA").when(rpcClientA).getColumnAData(Mockito.anyLong());
         String case3Str = serviceA.serviceAMethod01(1L);
         Assert.assertEquals("columnA , processColumnA01", case3Str);
-        // (4)
+        // (4) daoTableA.selectColumnA(指定Long值) 返回 "123456";
+        // 这里 when(Mock对象.方法(参数)).thenReturn(指定返回值), 会先实际执行 selectColumnA 内逻辑, 然后替换返回值为指定值再返回
+        Mockito.when(daoTableA.selectColumnA(Mockito.eq(2L))).thenReturn("123456");
+        String case4Str = serviceA.serviceAMethod01(2L);
+        Assert.assertEquals("123456, columnA.length() > 5", case4Str);
+        // (5) daoTableA.selectColumnA(指定Long值) 返回 "123";
+        Mockito.when(daoTableA.selectColumnA(Mockito.eq(2L))).thenReturn("123");
+        String case5Str = serviceA.serviceAMethod01(2L);
+        Assert.assertEquals("123 , processColumnA02", case5Str);
+    }
+
+    /**
+     * 按照 Assert 语句执行编号 <br/>
+     * <p>
+     * (1) name 为null的情况 <br/>
+     * (2) name = '' 的情况 <br/>
+     * (3) name = ' ' 的情况 <br/>
+     * (4) name 不为 空白的情况 <br/>
+     * </p>
+     */
+    @Test
+    public void testServiceAMethod02() {
+        // (1) name 为null的情况
+        String case1Str = serviceA.serviceAMethod02(null);
+        Assert.assertEquals("serviceAMethod02(String name), name is null", case1Str);
+        // (2) name = '' 的情况
+        String case2Str = serviceA.serviceAMethod02("");
+        Assert.assertEquals("serviceAMethod02(String name), name is ''", case2Str);
+        // (3) name = ' ' 的情况
+        String case3Str = serviceA.serviceAMethod02(" ");
+        Assert.assertEquals("serviceAMethod02(String name), name is blank", case3Str);
+        // (4) name 不为 空白的情况
+        String case4Str = serviceA.serviceAMethod02("not Blank");
+        Assert.assertEquals("not Blank", case4Str);
+    }
+
+    /**
+     * 按照 Assert 语句执行编号 <br/>
+     * <p>
+     * (1) id = null <br/>
+     * (2) name = null <br/>
+     * (3) name = ' ' <br/>
+     * (4) Mock rpcClientA.getColumnAData, 以覆盖 processColumnA03 方法 <br/>
+     * </p>
+     */
+    @Test
+    public void serviceAMethod03() {
+        // (1) id = null
+        String case1Str = serviceA.serviceAMethod03(null, "");
+        Assert.assertEquals("getColumnAData(String name), name is null or ''", case1Str);
+        // (2) name = null
+        String case2Str = serviceA.serviceAMethod03(1L, null);
+        Assert.assertEquals("getColumnAData(String name), name is null or ''", case2Str);
+        // (3) name = ' '
+        String case3Str = serviceA.serviceAMethod03(1L, " ");
+        Assert.assertEquals("1 ", case3Str);
+        // (4) Mock rpcClientA.getColumnAData, 以覆盖 processColumnA03 方法
+        Mockito.doReturn("").when(rpcClientA).getColumnAData(Mockito.anyString());
+        String case4Str = serviceA.serviceAMethod03(null, "123");
+        Assert.assertEquals("processColumnA03, columnA is null or ''", case4Str);
     }
 }
