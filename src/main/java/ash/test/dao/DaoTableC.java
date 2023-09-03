@@ -14,7 +14,7 @@ public class DaoTableC {
         return "selectColumnC(Long id)";
     }
 
-    public String selectColumnB(String name) {
+    public String selectColumnC(String name) {
         return processData(name);
     }
 

@@ -23,8 +23,8 @@ public class ServiceImplC implements IServiceC {
     private RpcClientC rpcClientC;
 
     @Override
-    public String serviceCMethod(String name) {
-        String mysqlData = daoTableC.selectColumnB(name);
+    public String serviceCMethod01(String name) {
+        String mysqlData = daoTableC.selectColumnC(name);
         String rpcData = rpcClientC.getColumnC(Long.parseLong(mysqlData));
         if (Objects.isNull(rpcData)) {
             return "null";
@@ -33,7 +33,7 @@ public class ServiceImplC implements IServiceC {
     }
 
     @Override
-    public String serviceCMethod(Long id, String name) {
+    public String serviceCMethod02(Long id, String name) {
         String mysqlData = daoTableC.selectColumnC(id);
         String rpcData = rpcClientC.getColumnC(id, name);
         rpcData = processData01(rpcData);
@@ -42,7 +42,7 @@ public class ServiceImplC implements IServiceC {
     }
 
     @Override
-    public String serviceCMethod(List<Long> idList) {
+    public String serviceCMethod03(List<Long> idList) {
         return rpcClientC.getColumnC(idList);
     }
 
