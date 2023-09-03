@@ -49,6 +49,6 @@ public class ServiceImplB implements IServiceB {
         if (columnB.isBlank()) {
             return "blank";
         }
-        return "processDataB(String columnB)";
+        return columnB;
     }
 }
